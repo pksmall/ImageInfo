@@ -1,0 +1,66 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "office.small.imageinfo"
+        minSdkVersion 19
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions{
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+ext {
+    // Libraries for samples
+    fragmentargsVersion = '2.1.0'
+    butterknifeVersion = '8.5.1'
+    icepickVersion = '3.0.2'
+    retrofitVersion = '1.9.0'
+    picassoVersion = '2.5.2'
+    okhttpVersion = '2.3.0'
+    parcelablepleaseVersion = '1.0.1'
+    annotatedadapterVersion = '1.1.1'
+    rxjavaVersion = '1.2.7'
+    rxandroidVersion = '1.2.1'
+    dagger2Version = '2.0'
+    rxjava2Version = '2.1.12'
+    rxadroid2Version = '2.0.2'
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    testImplementation 'junit:junit:4.12'
+
+    // butterknife
+    implementation 'com.jakewharton:butterknife:' + butterknifeVersion
+    annotationProcessor 'com.jakewharton:butterknife-compiler:' + butterknifeVersion
+
+    annotationProcessor 'com.hannesdorfmann.annotatedadapter:processor:' + annotatedadapterVersion
+    implementation 'com.hannesdorfmann.annotatedadapter:annotation:' + annotatedadapterVersion
+    implementation 'com.hannesdorfmann.annotatedadapter:support-recyclerview:' + annotatedadapterVersion
+
+    implementation 'com.hannesdorfmann.parcelableplease:annotation:' + parcelablepleaseVersion
+    annotationProcessor 'com.hannesdorfmann.parcelableplease:processor:' + parcelablepleaseVersion
+
+    // rxJava & rxAndroid
+    implementation 'io.reactivex.rxjava2:rxjava:' + rxjava2Version
+    implementation 'io.reactivex.rxjava2:rxandroid:' + rxadroid2Version
+    
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
