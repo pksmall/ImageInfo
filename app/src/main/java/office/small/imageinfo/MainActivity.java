@@ -25,8 +25,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -42,6 +44,8 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private final String TAG = "IMGINFO";
+
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
     /** ButterKnife Code **/
     @BindView(R.id.txtSDK)
@@ -52,8 +56,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView txtUriPath;
     @BindView(R.id.txtRealPath)
     TextView txtRealPath;
+    @BindView(R.id.txtDoWork)
+    TextView txtDoWork;
     @BindView(R.id.imgView)
     ImageView imgView;
+    @BindView(R.id.imgViewOrig)
+    ImageView imgViewOrig;
+    private Observable<Object> observable;
+    private Observer<? super Object> observer;
+
     /** ButterKnife Code **/
 
     @Override
@@ -113,55 +124,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void setTextViews(int sdk, String uriPath, String realPath){
-
-        this.txtSDK.setText("Build.VERSION.SDK_INT: "+sdk);
-        this.txtUriPath.setText("URI Path: "+uriPath);
-        this.txtRealPath.setText("Real Path: "+realPath);
-
-
-        Uri uriFromPath = Uri.fromFile(new File(realPath));
+    private void setTextViews(int sdk, String uriPath, String realPath) {
         // you have two ways to display selected image
         // ( 1 ) imageView.setImageURI(uriFromPath);
         // ( 2 ) imageView.setImageBitmap(bitmap);
+        Uri uriFromPath = Uri.fromFile(new File(realPath));
 
-        Observable<Bitmap> oImgPng = Observable.just(uriFromPath)
-                .flatMap((Function<Uri, ObservableSource<Bitmap>>) uri -> {
-                    Bitmap bmpjpg = null;
-                    Observable<Bitmap> obBitmap = null;
-                    try {
-                        bmpjpg = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
-                        obBitmap = Observable.just(codec(bmpjpg, Bitmap.CompressFormat.PNG, 0));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    return  obBitmap;
-                })
-                .subscribeOn(Schedulers.io());
 
-        Disposable dImg = oImgPng
+        // Do rxjava 2 magic
+        getObservable(uriFromPath)
+                // Run on a background thread
+                .subscribeOn(Schedulers.io())
+                // Be notified on the main thread
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<Bitmap>() {
-                @Override
-                public void onNext(Bitmap bmp) {
-                    imgView.setImageBitmap(bmp);
-                }
+                .subscribe(getObserver(uriFromPath, sdk, uriPath, realPath));
 
-                @Override
-                public void onError(Throwable e) {
-
-                }
-
-                @Override
-                public void onComplete() {
-
-                }
-        });
-        dImg.dispose();
-
-        Log.d("INFMODE", "Build.VERSION.SDK_INT:"+sdk);
-        Log.d("INFMODE", "URI Path:"+uriPath);
-        Log.d("INFMODE", "Real Path: "+realPath);
+        // logs
+        Log.d(TAG, "Build.VERSION.SDK_INT:" + sdk);
+        Log.d(TAG, "URI Path:" + uriPath);
+        Log.d(TAG, "Real Path: " + realPath);
 
 
     }
@@ -175,5 +156,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return BitmapFactory.decodeByteArray(array, 0, array.length);
     }
 
+    public Observable<Bitmap> getObservable(Uri uriFromPath) {
+        return Observable.just(uriFromPath)
+                .flatMap((Function<Uri, ObservableSource<Bitmap>>) uri -> {
+                    Bitmap bmpjpg = null;
+                    Observable<Bitmap> obBitmap = null;
+                    try {
+                        Log.d(TAG, " codec ...");
+                        bmpjpg = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
+                        obBitmap = Observable.just(codec(bmpjpg, Bitmap.CompressFormat.PNG, 0));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    return obBitmap;
+                });
+    }
+
+    public Observer<Bitmap> getObserver(Uri uriFromPath, int sdk, String uriPath, String realPath) {
+        return new Observer<Bitmap>() {
+
+            Disposable mD;
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.d(TAG, " onSubscribe : " + d.isDisposed());
+                this.mD = d;
+            }
+
+            @Override
+            public void onNext(Bitmap bitmap) {
+                Log.d(TAG, " onNext ");
+                txtDoWork.append(" onNext : " + mD.isDisposed());
+                imgView.setImageBitmap(bitmap);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                txtDoWork.append(" onError : " + e.getMessage());
+                Log.d(TAG, " onError : " + e.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                txtDoWork.append(" onComplite ");
+
+                txtSDK.setText("Build.VERSION.SDK_INT: " + sdk);
+                txtUriPath.setText("URI Path: " + uriPath);
+                txtRealPath.setText("Real Path: " + realPath);
+
+                Log.d(TAG, " onComplite: " + mD.isDisposed());
+                imgViewOrig.setImageURI(uriFromPath);
+            }
+        };
+    }
 }
 

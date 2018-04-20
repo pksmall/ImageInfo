@@ -35,10 +35,27 @@
         android:text="Real Path:"
         android:layout_marginBottom="20dp"  />
 
-    <ImageView
-        android:id="@+id/imgView"
+    <TextView
+        android:id="@+id/txtDoWork"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/txtRealPath" />
+        android:layout_below="@+id/txtRealPath"
+        android:text="Work With:"
+        android:layout_marginBottom="16dp"  />
+
+    <ImageView
+        android:id="@+id/imgView"
+        android:layout_width="280dp"
+        android:layout_height="160dp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/txtDoWork" />
+
+    <ImageView
+        android:id="@+id/imgViewOrig"
+        android:layout_width="280dp"
+        android:layout_height="160dp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/imgView" />
+
 
 </RelativeLayout>
