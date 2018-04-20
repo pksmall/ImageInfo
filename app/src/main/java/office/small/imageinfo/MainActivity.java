@@ -62,8 +62,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView imgView;
     @BindView(R.id.imgViewOrig)
     ImageView imgViewOrig;
-    private Observable<Object> observable;
-    private Observer<? super Object> observer;
 
     /** ButterKnife Code **/
 
