@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
@@ -28,9 +29,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
-import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -62,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView imgView;
     @BindView(R.id.imgViewOrig)
     ImageView imgViewOrig;
+    @BindView(R.id.mainProgBar)
+    ProgressBar mainProgBar;
 
     /** ButterKnife Code **/
 
@@ -70,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
+        // Progress Bar
+        mainProgBar.setVisibility(View.INVISIBLE);
 
         // add click listener to button
         btnSelectImage.setOnClickListener(this);
@@ -109,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int reqCode, int resCode, Intent data) {
         if(resCode == Activity.RESULT_OK && data != null){
             String realPath;
+
             // SDK < API11
             if (Build.VERSION.SDK_INT < 11)
                 realPath = RealPathUtil.getRealPathFromURI_BelowAPI11(this, data.getData());
@@ -178,13 +183,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
+                mainProgBar.setVisibility(View.VISIBLE);
                 this.mD = d;
             }
 
             @Override
             public void onNext(Bitmap bitmap) {
                 Log.d(TAG, " onNext ");
-                txtDoWork.append(" onNext : " + mD.isDisposed());
+                txtDoWork.setText(" onNext : " + mD.isDisposed());
                 imgView.setImageBitmap(bitmap);
             }
 
@@ -196,6 +202,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onComplete() {
+                mainProgBar.setVisibility(View.INVISIBLE);
+
                 txtDoWork.append(" onComplite ");
 
                 txtSDK.setText("Build.VERSION.SDK_INT: " + sdk);
